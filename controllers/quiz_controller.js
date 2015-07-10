@@ -13,12 +13,23 @@ exports.load = function(req, res, next, quizId) {
 };
 
 // GET /quizes
-exports.index = function(req, res) {
-  models.Quiz.findAll().then(function(quizes) {
-  	res.render('quizes/index.ejs', { quizes: quizes});
+exports.index = function(req, res)
+{
+  var search = (req.query.search || '').trim();
+  var options = {};
+  var search_where = '';
+
+  if (search !== '')
+  {
+    search_where = '%' + search.replace(' ', '%') +'%';
+    options = {where: ['pregunta LIKE ?', search_where], order: 'pregunta ASC'};
   }
-).catch(function(error) { next(error);})
-};
+
+  models.Quiz.findAll(options).then(function(quizes)
+  {
+    res.render('quizes/index', { quizes: quizes , search: search , errors: [] });
+  });
+}
 
 // GET /quizes/:id
 exports.show = function(req, res) {
